@@ -1,6 +1,7 @@
 **Nima Aghayan — Senior Embedded Software Engineer**
+## Professional Summary
 
-This README is a resume-style GitHub profile document focused on automotive embedded software, Embedded Linux, and AI/computer vision.
+Senior Embedded Software Engineer with **5+ years of professional experience in automotive software development at CROUSE PJS Co.**, with a strong background in Embedded C, Embedded Linux, MCU firmware, automotive communication, telematics, modem software, GUI systems, software testing, and test automation.
 
 **Key Highlights**
 - **Experience:** 5+ years at CROUSE PJS Co. as an Embedded/Automotive Software Engineer.
@@ -12,4 +13,3 @@ This README is a resume-style GitHub profile document focused on automotive embe
 - **Profiles:** GitHub: [NimaAgm](https://github.com/NimaAgm) · LinkedIn: [nima-aghayan-476026218](https://www.linkedin.com/in/nima-aghayan-476026218/)
 - **Languages:** Persian (native), English (proficient).
 
-In short, it is a detailed embedded/automotive engineering resume README that presents Nima’s professional experience, project work, research publication, education, and technical skill set.
