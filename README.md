@@ -1,5 +1,5 @@
-**Nima Aghayan — Senior Embedded Software Engineer**
-## Professional Summary
+
+## Senior Embedded Software Engineer
 
 Senior Embedded Software Engineer with professional experience in automotive software development, with a strong background in Embedded C, Embedded Linux, MCU firmware, automotive communication, telematics, modem software, GUI systems, software testing, and test automation.
 
