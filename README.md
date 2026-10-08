@@ -1,7 +1,7 @@
 **Nima Aghayan — Senior Embedded Software Engineer**
 ## Professional Summary
 
-Senior Embedded Software Engineer with **5+ years of professional experience in automotive software development at CROUSE PJS Co.**, with a strong background in Embedded C, Embedded Linux, MCU firmware, automotive communication, telematics, modem software, GUI systems, software testing, and test automation.
+Senior Embedded Software Engineer with professional experience in automotive software development, with a strong background in Embedded C, Embedded Linux, MCU firmware, automotive communication, telematics, modem software, GUI systems, software testing, and test automation.
 
 **Key Highlights**
 - **Experience:** 5+ years at CROUSE PJS Co. as an Embedded/Automotive Software Engineer.
