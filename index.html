@@ -277,7 +277,7 @@ const CONTACT = {
   email:    'nima.aghayan@gmail.com',
   phone:    '+98 912 968 2147',
   location: 'Tehran, Iran',
-  github:   'https://github.com/nimaaghayan',
+  github:   'https://github.com/NimaAgm',
   linkedin: 'https://www.linkedin.com/in/nima-aghayan'
 };
 
@@ -572,14 +572,14 @@ function cmdNeofetch(){
   const info = [
     ['',           'nima@embedded'],
     ['',           '─────────────────────────────'],
-    ['OS',         'Embedded Linux (Yocto / BitBake)'],
+    ['OS',         'Embedded Linux and Automotive SW'],
     ['Host',       'Crouse PJS Co. — Automotive'],
-    ['Kernel',     'RTOS + Linux 5.x'],
+    ['Kernel',     'RTOS + uCOS + Linux 5.x'],
     ['Uptime',     '5+ years'],
     ['Shell',      '/bin/embedded-c'],
-    ['Display',    '1024×768 @ 60 FPS'],
-    ['CPU',        'ARM Cortex-M · STM32 · GD32'],
-    ['Memory',     'SDRAM + QSPI Flash'],
+    ['Display',    'LVGL, Digital Cluster 1024×768 @ 60 FPS'],
+    ['CPU',        'ARM Cortex-M · STM32F7,H7,F4,F1 · GD32'],
+    ['Memory',     'SDRAM + QSPI Flash + E2PROM'],
     ['Modem',      'Meig MA800 · Quectel MC60'],
     ['Languages',  'Persian (native) · English']
   ];
@@ -661,7 +661,9 @@ async function cmdDemo(){
 
   const sections = [
     { label: 'About',                   fn: cmdAbout },
-    { label: 'Professional Experience', fn: () => cmdExperience([]) },
+    { label: 'Professional Experience', fn: () => cmdExperience([1]) },
+    { label: 'Professional Experience', fn: () => cmdExperience([2]) },
+    { label: 'Professional Experience', fn: () => cmdExperience([3]) },
     { label: 'Education',               fn: cmdEducation },
     { label: 'Technical Skills',        fn: cmdSkills },
     { label: 'Research',                fn: cmdResearch },
