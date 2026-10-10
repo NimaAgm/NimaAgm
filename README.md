@@ -2,7 +2,7 @@
 ## Senior Embedded Software Engineer
 
 Senior Embedded Software Engineer with professional experience in automotive software development, with a strong background in Embedded C, Embedded Linux, MCU firmware, automotive communication, telematics, modem software, GUI systems, software testing, and test automation.
-
+https://www.technogem.ir/
 **Key Highlights**
 - **Experience:** 5+ years at CROUSE PJS Co. as an Embedded/Automotive Software Engineer.
 - **Core expertise:** Embedded C, Embedded Linux, MCU firmware, RTOS, CAN, UDS, telematics, modem software, MQTT, OTA/FOTA, eCall/bCall, LVGL, TouchGFX, and test automation.
