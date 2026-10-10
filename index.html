@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nima@embedded:~$ resume</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:        #05080a;
+    --panel:     #08120f;
+    --fg:        #eafff4;
+    --dim:       #93c4b1;
+    --green:     #4dffb8;
+    --green-2:   #b3ffd6;
+    --cyan:      #8ceef5;
+    --yellow:    #ffe890;
+    --red:       #ff9b9b;
+    --link:      #7fd4ff;
+    --link-hover:#c9ecff;
+    --border:    #24594a;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body{
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    background:
+      radial-gradient(circle at 50% 0%, #102420 0%, #07100d 55%, #000 100%);
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+                 Consolas, "Liberation Mono", monospace;
+    color: var(--fg);
+    font-size: 15.5px;
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ---------- Terminal window — fills viewport ---------- */
+  .terminal{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: rgba(9, 20, 17, .97);
+    border: 0;
+    border-radius: 0;
+    box-shadow:
+      inset 0 0 0 1px rgba(120, 255, 200, .06),
+      inset 0 0 120px rgba(80, 255, 190, .05);
+  }
+
+  .terminal::after{
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, .012) 0 1px,
+      transparent 1px 3px
+    );
+    z-index: 5;
+  }
+
+  .titlebar{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: #0c1f1a;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--dim);
+    user-select: none;
+    flex: none;
+  }
+  .dots{ display: flex; gap: 7px; flex: none; }
+  .dot{ width: 11px; height: 11px; border-radius: 50%; }
+  .dot.r{ background: #ff5f56; }
+  .dot.y{ background: #ffbd2e; }
+  .dot.g{ background: #27c93f; }
+  .titlebar .title{
+    flex: 1;
+    text-align: center;
+    letter-spacing: .04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .titlebar .spacer{ width: 46px; flex: none; }
+
+  /* ---------- Screen ---------- */
+  .screen{
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 18px 26px 26px;
+    font-size: 15.5px;
+    line-height: 1.6;
+    scrollbar-width: thin;
+    scrollbar-color: #2c6a56 transparent;
+  }
+  .screen::-webkit-scrollbar{ width: 10px; }
+  .screen::-webkit-scrollbar-track{ background: transparent; }
+  .screen::-webkit-scrollbar-thumb{
+    background: #24594a;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  .line{
+    white-space: pre-wrap;
+    word-break: break-word;
+    text-shadow: 0 0 6px rgba(120, 255, 200, .10);
+  }
+
+  /* ---------- Colors ---------- */
+  .u { color: var(--green); font-weight: 700; }
+  .h { color: var(--green-2); font-weight: 700; }
+  .p { color: var(--cyan); font-weight: 700; }
+  .d { color: var(--dim); }
+  .k { color: var(--cyan); font-weight: 700; }
+  .h1{
+    color: var(--green-2);
+    font-weight: 700;
+    text-shadow: 0 0 12px rgba(120, 255, 200, .55);
+  }
+  .ok{ color: #4dff8a; font-weight: 700; }
+  .cmd{ color: #ffffff; font-weight: 700; }
+  .err{ color: var(--red); font-weight: 700; }
+  .warn{ color: var(--yellow); font-weight: 700; }
+  .bullet{ color: var(--dim); font-weight: 700; }
+
+  /* ---------- Clickable links ---------- */
+  .line a{
+    color: var(--link);
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(127, 212, 255, .55);
+    cursor: pointer;
+    transition: color .12s ease, border-color .12s ease, background .12s ease;
+    padding: 1px 2px;
+    border-radius: 3px;
+  }
+  .line a:hover{
+    color: var(--link-hover);
+    border-bottom-color: var(--link-hover);
+    background: rgba(127, 212, 255, .12);
+  }
+  .line a:active{
+    background: rgba(127, 212, 255, .25);
+  }
+  .line a:focus-visible{
+    outline: 2px solid var(--link);
+    outline-offset: 1px;
+  }
+
+  /* ---------- Input line ---------- */
+  .input-line{
+    display: flex;
+    align-items: flex-start;
+    margin-top: 2px;
+  }
+  .prompt{ white-space: pre; flex: none; font-weight: 700; }
+  .input-wrap{
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+  .mirror{
+    display: block;
+    white-space: pre;
+    overflow: hidden;
+    color: #ffffff;
+    font-weight: 700;
+  }
+  .cursor{
+    display: inline-block;
+    width: .62em;
+    height: 1.02em;
+    margin-left: 1px;
+    vertical-align: -.15em;
+    background: var(--green);
+    box-shadow: 0 0 12px rgba(120, 255, 200, .9);
+    animation: blink 1.05s step-end infinite;
+  }
+  @keyframes blink{ 0%,100%{ opacity: 1; } 50%{ opacity: 0; } }
+
+  #cmdline{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    border: 0;
+    outline: 0;
+    padding: 0;
+    background: transparent;
+    font: inherit;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 720px){
+    body{ font-size: 13.5px; }
+    .screen{
+      padding: 14px 16px 20px;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+    .titlebar .title{ font-size: 11.5px; }
+    .titlebar{ padding: 8px 12px; }
+  }
+  @media (max-width: 420px){
+    .screen{ font-size: 12.2px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="terminal">
+    <div class="titlebar">
+      <div class="dots">
+        <span class="dot r"></span>
+        <span class="dot y"></span>
+        <span class="dot g"></span>
+      </div>
+      <div class="title">nima@embedded: ~/resume — zsh</div>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="screen" id="screen">
+      <div id="output"></div>
+
+      <div class="input-line" id="inputLine">
+        <span class="prompt"><span class="u">nima</span><span class="d">@</span><span class="h">embedded</span><span class="d">:</span><span class="p">~</span><span class="d">$</span>&nbsp;</span>
+        <div class="input-wrap">
+          <span class="mirror" id="mirror"><span class="cursor"></span></span>
+          <input id="cmdline" type="text" autocomplete="off" autocapitalize="off"
+                 autocorrect="off" spellcheck="false" aria-label="terminal input">
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =========================================================
+   Nima Aghayan — terminal resume
+   ========================================================= */
+
+const screenEl = document.getElementById('screen');
+const outputEl = document.getElementById('output');
+const inputEl  = document.getElementById('cmdline');
+const mirrorEl = document.getElementById('mirror');
+const inputLine= document.getElementById('inputLine');
+
+const PROMPT_HTML =
+  '<span class="u">nima</span><span class="d">@</span><span class="h">embedded</span>' +
+  '<span class="d">:</span><span class="p">~</span><span class="d">$</span> ';
+
+/* ⚠️ Update these two links if your handles differ */
+const CONTACT = {
+  email:    'nima.aghayan@gmail.com',
+  phone:    '+98 912 968 2147',
+  location: 'Tehran, Iran',
+  github:   'https://github.com/nimaaghayan',
+  linkedin: 'https://www.linkedin.com/in/nima-aghayan'
+};
+
+/* ---------------- helpers ---------------- */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function esc(s){
+  return String(s).replace(/[&<>"]/g, c => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]
+  ));
+}
+
+/* Build an anchor tag for the terminal */
+function link(href, label){
+  return '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">' +
+         esc(label || href) + '</a>';
+}
+
+function scrollDown(){
+  screenEl.scrollTop = screenEl.scrollHeight;
+}
+
+function printRaw(html, cls = ''){
+  const d = document.createElement('div');
+  d.className = 'line ' + cls;
+  d.innerHTML = (html === '' ? '&nbsp;' : html);
+  outputEl.appendChild(d);
+  scrollDown();
+  return d;
+}
+
+function print(text = '', cls = ''){
+  printRaw(esc(text), cls);
+}
+
+function header(title){
+  printRaw('<span class="h1">' + esc(title) + '</span>');
+}
+
+/* =========================================================
+   CONTENT
+   ========================================================= */
+
+function cmdAbout(){
+  header('Nima Aghayan');
+  printRaw('<span class="d">Senior Embedded Software Engineer · Automotive Software · Embedded Linux</span>');
+  print('');
+  printRaw(
+    esc(CONTACT.location) + '  •  ' +
+    link('tel:' + CONTACT.phone.replace(/\s+/g, ''), CONTACT.phone) + '  •  ' +
+    link('mailto:' + CONTACT.email, CONTACT.email)
+  );
+  print('');
+  print('Embedded Software Engineer with 5+ years of experience in automotive software,');
+  print('Embedded Linux, telematics, and modem systems. Strong hands-on background in');
+  print('Embedded C, Yocto, Linux services, CAN, cellular connectivity, OTA/FOTA, eCall,');
+  print('and low-level drivers. Proven across the development lifecycle — from requirements');
+  print('and implementation to verification, integration, debugging, and production support.');
+}
+
+/* ---------------- Experience ---------------- */
+const ROLES = [
+  {
+    company: 'CROUSE PJS Co.',
+    title:   'Senior Embedded Software Engineer / Automotive Software Engineer',
+    period:  'Sep 2021 – Present',
+    location:'Tehran, Iran',
+    groups: [
+      {
+        name: 'Telematics Control Unit',
+        items: [
+          'Integrated modem and telematics software on Meig MA800 and Quectel MC60 platforms — cellular voice, SMS, data, GNSS, SIM, MQTT, HTTP, OTA/FOTA, eCall/bCall, PMU.',
+          'Implemented Embedded Linux applications and services using processes, threads, ADB, GDB, cross-compilation, and user/kernel-space interfaces.',
+          'Designed low-level drivers and firmware for CAN, UART, SPI/QSPI, I2C, I2S, USB, SDIO, GPIO, DMA, displays, SDRAM, and QSPI Flash.',
+          'Reduced boot time by optimizing the U-Boot boot process, increasing SPI speed, and removing/optimizing unnecessary kernel modules and init scripts.',
+          'Debugged hardware/software issues and performed root-cause analysis using JTAG, GDB, oscilloscopes, logic analyzers, and CAN tools.'
+        ]
+      },
+      {
+        name: 'Automotive Cluster / Graphics Platform',
+        items: [
+          'Designed QSPI/SDRAM drivers, custom Flash Loader, linker configuration, and RTOS task architecture.',
+          'Integrated LVGL and TouchGFX, achieving stable 60 FPS at 1024×768 through graphics optimization.',
+          'Optimized UI processing with optimized UI design techniques.',
+          'Resolved tearing issues in LTDC and DMA2D on STM32 and GD32 during digital cluster rendering.',
+          'Designed and developed digital cluster software using GUI Guider for LVGL.'
+        ]
+      },
+      {
+        name: 'Automotive Radio / Infotainment',
+        items: [
+          'Implemented USB, display, audio, CAN, and Bluetooth functionality, plus a Bluetooth IC production programmer.',
+          'Designed and optimized USB disk scanning algorithms for audio files.',
+          'Designed control programs for handling/decoding MP3, WMA, and WAV files.',
+          'Resolved an STM32 HAL USB stack issue.',
+          'Built automated test benches and production-test solutions including CAN/MFD decoding.',
+          'Automated unit, integration, system, HIL/SIL, regression, and production tests using Python, Unity, VectorCAST, and dedicated test benches.'
+        ]
+      }
+    ]
+  },
+  {
+    company: 'Rahbaran Internet of Things',
+    title:   'Electronics Engineer',
+    period:  'Sep 2020 – Sep 2021',
+    location:'Tehran, Iran',
+    groups: []
+  },
+  {
+    company: 'Kooreh Shahab',
+    title:   'Electrical Design Engineer',
+    period:  'Apr 2019 – Sep 2020',
+    location:'Tehran, Iran',
+    groups: [
+      {
+        name: 'Electrical & Power Design',
+        items: [
+          'Designed and documented electrical schematics and PCB solutions for industrial equipment and power-supply applications.',
+          'Hands-on experience with induction furnaces, industrial electrical systems, and switching power supplies.'
+        ]
+      }
+    ]
+  }
+];
+
+function cmdExperience(args){
+  if (args && args.length){
+    const n = parseInt(args[0], 10);
+    if (isNaN(n) || n < 1 || n > ROLES.length){
+      printRaw('<span class="err">experience: invalid role index "' + esc(args[0]) + '"</span>');
+      printRaw('<span class="d">usage: experience [1-' + ROLES.length + ']</span>');
+      return;
+    }
+    printRole(ROLES[n - 1]);
+    return;
+  }
+
+  header('Professional Experience');
+  print('');
+  ROLES.forEach((r, i) => {
+    printRaw('<span class="k">[' + (i + 1) + ']</span> <span class="h1">' + esc(r.company) + '</span>');
+    printRaw('    ' + esc(r.title));
+    printRaw('    <span class="d">' + esc(r.period) + ' · ' + esc(r.location) + '</span>');
+    if (r.groups.length){
+      printRaw('    <span class="d">' + r.groups.map(g => esc(g.name)).join(' · ') + '</span>');
+    }
+    print('');
+  });
+  printRaw('<span class="d">run </span><span class="k">experience 1</span><span class="d"> (or 2 / 3) for the full breakdown</span>');
+}
+
+function printRole(r){
+  printRaw('<span class="h1">' + esc(r.company) + '</span>');
+  printRaw('<span class="d">' + esc(r.title) + '</span>');
+  printRaw('<span class="d">' + esc(r.period) + '  |  ' + esc(r.location) + '</span>');
+  print('');
+
+  if (!r.groups.length){
+    printRaw('<span class="d">— no further detail recorded in this résumé —</span>');
+    return;
+  }
+
+  r.groups.forEach(g => {
+    printRaw('<span class="k">▸ ' + esc(g.name) + '</span>');
+    g.items.forEach(it => {
+      printRaw('  <span class="bullet">•</span> ' + esc(it));
+    });
+    print('');
+  });
+}
+
+/* ---------------- Skills ---------------- */
+function cmdSkills(){
+  const rows = [
+    ['Programming',        ['C · Embedded C · Python']],
+    ['Embedded Systems',   ['ARM Cortex-M · STM32F1/F4/F7/H7 · GD32F1/F4/F7/H7',
+                            'RTOS · uC/OS · Bootloaders · Low-Level Drivers']],
+    ['Embedded Linux',     ['Linux · Yocto · BitBake · Cross Compilation · GDB · ADB',
+                            'Linux Services · Processes/Threads · User/Kernel Space']],
+    ['Automotive',         ['CAN · UDS/ISO 14229 · TCU · Telematics · eCall · bCall',
+                            'OTA/FOTA · Cellular · MQTT']],
+    ['Modem / Telematics', ['Meig MA800 · Quectel MC60']],
+    ['Peripherals',        ['CAN · SPI/QSPI · I2C · UART · USB · I2S · SDIO · DMA · GPIO']],
+    ['Graphics',           ['LVGL · TouchGFX · TFT-LCD · DMA2D · SDRAM']],
+    ['AI / CV',            ['YOLOv5 · Object Detection · OpenCV · Deep Learning · GAN',
+                            'Image Processing · Data Augmentation']],
+    ['Testing',            ['Unity · Integration · System · HIL/SIL · Test Automation',
+                            'Regression · MISRA-C · Static Analysis']],
+    ['Tools',              ['makefile · Git · SVN · CANoe · IAR · Keil · STM32CubeIDE',
+                            'GDB · Ozone · JTAG · VectorCAST · Robot Framework',
+                            'PVS-Studio · IBM DOORS · Enterprise Architect · Confluence']]
+  ];
+
+  header('Technical Skills');
+  print('');
+  rows.forEach(([key, lines]) => {
+    lines.forEach((l, i) => {
+      if (i === 0){
+        printRaw('<span class="k">' + esc(key.padEnd(20)) + '</span>' + esc(l));
+      } else {
+        printRaw(' '.repeat(20) + esc(l));
+      }
+    });
+  });
+}
+
+/* ---------------- Education ---------------- */
+function cmdEducation(){
+  header('Education');
+  print('');
+  printRaw('<span class="h1">M.Sc., Electrical & Electronic Engineering — Automotive Engineering</span>');
+  print('  Iran University of Science and Technology');
+  print('  Graduated as valedictorian. Focus: automotive electrical/electronic systems,');
+  print('  embedded systems, automotive software, and intelligent automotive systems.');
+  print('');
+  printRaw('<span class="h1">B.Sc., Avionics Engineering</span>');
+  print('  Civil Aviation Technology College');
+  print('  Final project: PLC-based control system — PLC programming, I/O integration,');
+  print('  and control-system testing.');
+  print('');
+  header('Courses & Certificates');
+  print('');
+  const courses = [
+    ['Advanced Hardware Design',                       'Fedevel Academy'],
+    ['Advanced PCB Layout Course',                     'Fedevel Academy'],
+    ['Altium Designer',                                'Technical & Vocational Training Organization'],
+    ['AutoCAD Electrical',                             'Technical & Vocational Training Organization'],
+    ['ARM Fundamentals with STM32 Microcontrollers',   'TeachTechs'],
+    ['C Programming in NASA Style',                    'TeachTechs'],
+    ['English Language Diploma',                       'Puyesh Institute']
+  ];
+  courses.forEach(([c, org]) => {
+    printRaw('<span class="bullet">•</span> ' + esc(c) + '  <span class="d">— ' + esc(org) + '</span>');
+  });
+}
+
+/* ---------------- Research ---------------- */
+function cmdResearch(){
+  header('Research & Publications');
+  print('');
+  const pubs = [
+    ['Road damage detection with bounding box and generative adversarial networks based augmentation methods',
+     'IET Image Processing, 2024.'],
+    ['Improving the Accuracy of Road Damage Detectors Using Traditional Augmentations and Object Bounding Box Augmentation',
+     'JIAEEE — Research Article.'],
+    ['Regenerative Braking in Electric and Hybrid Vehicles',
+     'Review study of regenerative braking systems in electric and hybrid vehicles. Civilica — Conference Paper.']
+  ];
+  pubs.forEach(([t, m], i) => {
+    printRaw('<span class="k">[' + (i + 1) + ']</span> <span class="h1">' + esc(t) + '</span>');
+    printRaw('    <span class="d">' + esc(m) + '</span>');
+    print('');
+  });
+}
+
+/* ---------------- Contact ---------------- */
+function cmdContact(){
+  header('Contact');
+  print('');
+
+  const ghLabel = CONTACT.github.replace(/^https?:\/\/(www\.)?/, '');
+  const liLabel = CONTACT.linkedin.replace(/^https?:\/\/(www\.)?/, '');
+
+  printRaw('<span class="k">Email     </span>' + link('mailto:' + CONTACT.email, CONTACT.email));
+  printRaw('<span class="k">Phone     </span>' + link('tel:' + CONTACT.phone.replace(/\s+/g, ''), CONTACT.phone));
+  printRaw('<span class="k">Location  </span>' + esc(CONTACT.location));
+  printRaw('<span class="k">GitHub    </span>' + link(CONTACT.github, ghLabel));
+  printRaw('<span class="k">LinkedIn  </span>' + link(CONTACT.linkedin, liLabel));
+  print('');
+  printRaw(
+    '<span class="d">→ </span>' +
+    link('mailto:' + CONTACT.email, 'send email') +
+    '<span class="d">  |  </span>' +
+    link(CONTACT.github, 'open GitHub') +
+    '<span class="d">  |  </span>' +
+    link(CONTACT.linkedin, 'open LinkedIn')
+  );
+}
+
+/* ---------------- Neofetch ---------------- */
+function cmdNeofetch(){
+  const art = [
+    '    ┌─────────────────┐',
+    '    │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │',
+    '    │ ▓             ▓ │',
+    '    │ ▓    NIMA     ▓ │',
+    '    │ ▓             ▓ │',
+    '    │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │',
+    '    └──┬──┬──┬──┬──┬──┘'
+  ];
+
+  const info = [
+    ['',           'nima@embedded'],
+    ['',           '─────────────────────────────'],
+    ['OS',         'Embedded Linux (Yocto / BitBake)'],
+    ['Host',       'Crouse PJS Co. — Automotive'],
+    ['Kernel',     'RTOS + Linux 5.x'],
+    ['Uptime',     '5+ years'],
+    ['Shell',      '/bin/embedded-c'],
+    ['Display',    '1024×768 @ 60 FPS'],
+    ['CPU',        'ARM Cortex-M · STM32 · GD32'],
+    ['Memory',     'SDRAM + QSPI Flash'],
+    ['Modem',      'Meig MA800 · Quectel MC60'],
+    ['Languages',  'Persian (native) · English']
+  ];
+
+  const total = Math.max(art.length, info.length);
+  for (let i = 0; i < total; i++){
+    const left = (art[i] || '').padEnd(26, ' ');
+    const row  = info[i] || ['', ''];
+    let right;
+
+    if (i === 0){
+      right = '<span class="h1">' + esc(row[1]) + '</span>';
+    } else if (i === 1){
+      right = '<span class="d">' + esc(row[1]) + '</span>';
+    } else {
+      right = '<span class="k">' + esc(row[0].padEnd(11)) + '</span>' + esc(row[1]);
+    }
+    printRaw(esc(left) + right);
+  }
+}
+
+/* =========================================================
+   DEMO — paused walkthrough
+   ========================================================= */
+
+let demoRunning       = false;
+let continueResolver  = null;
+
+function waitForContinue(seconds){
+  return new Promise(resolve => {
+    let remaining = seconds;
+    const line = printRaw('');
+
+    const render = () => {
+      line.innerHTML =
+        '<span class="d">   Press </span><span class="k">Enter</span>' +
+        '<span class="d"> to continue · auto-continue in </span>' +
+        '<span class="warn">' + remaining + 's</span>' +
+        '<span class="d"> ...</span>';
+    };
+    render();
+
+    let settled = false;
+    const finish = reason => {
+      if (settled) return;
+      settled = true;
+      clearInterval(iv);
+      continueResolver = null;
+      const label = (reason === 'enter') ? 'continued' : 'auto-continued';
+      line.innerHTML =
+        '<span class="d">   ── </span><span class="ok">' + label + '</span>' +
+        '<span class="d"> ──</span>';
+      resolve(reason);
+    };
+
+    const iv = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) finish('timeout');
+      else render();
+    }, 1000);
+
+    continueResolver = () => finish('enter');
+  });
+}
+
+async function cmdDemo(){
+  if (demoRunning){
+    printRaw('<span class="warn">demo: already running — press Enter to advance</span>');
+    return;
+  }
+  demoRunning = true;
+
+  printRaw('<span class="h1">╔══════════════════════════════════════════════════════════╗</span>');
+  printRaw('<span class="h1">║</span>  <span class="ok">▶ FULL RESUME DEMO</span> — Nima Aghayan                      <span class="h1">║</span>');
+  printRaw('<span class="h1">╚══════════════════════════════════════════════════════════╝</span>');
+  printRaw('<span class="d">   Each section pauses — press Enter to skip ahead, or wait 10s to auto-advance.</span>');
+  print('');
+  await sleep(600);
+
+  const sections = [
+    { label: 'About',                   fn: cmdAbout },
+    { label: 'Professional Experience', fn: () => cmdExperience([]) },
+    { label: 'Education',               fn: cmdEducation },
+    { label: 'Technical Skills',        fn: cmdSkills },
+    { label: 'Research',                fn: cmdResearch },
+    { label: 'Contact',                 fn: cmdContact }
+  ];
+
+  for (let i = 0; i < sections.length; i++){
+    const s = sections[i];
+
+    printRaw(
+      '<span class="d">── [</span><span class="ok">' + (i + 1) + '/' + sections.length + '</span>' +
+      '<span class="d">] </span><span class="k">' + esc(s.label) + '</span>' +
+      '<span class="d"> ──────────────────────────────</span>'
+    );
+    print('');
+
+    s.fn();
+    print('');
+
+    if (i < sections.length - 1){
+      await waitForContinue(10);
+      print('');
+    }
+  }
+
+  printRaw('<span class="ok">▶ Demo complete.</span> <span class="d">Use </span><span class="k">help</span><span class="d"> to explore individual sections, or </span><span class="k">clear</span><span class="d"> to reset.</span>');
+
+  demoRunning = false;
+}
+
+/* ---------------- Help ---------------- */
+function cmdHelp(){
+  header('Available commands');
+  printRaw('<span class="d">──────────────────────────────────────────────────────────</span>');
+  const rows = [
+    ['demo',            'play the full resume as a guided walkthrough'],
+    ['help',            'show this list'],
+    ['about',           'professional summary  (alias: whoami)'],
+    ['experience [n]',  'work history — n = 1..3 for full detail'],
+    ['skills',          'technical skills & tools'],
+    ['education',       'degrees, courses & certificates'],
+    ['research',        'publications & research work'],
+    ['contact',         'how to get in touch'],
+    ['ls',              'list resume sections'],
+    ['cat <file>',      'print a section file  (e.g. cat skills.txt)'],
+    ['neofetch',        'system-style summary'],
+    ['open <link>',     'github | linkedin | email'],
+    ['clear',           'clear the screen  (Ctrl+L)'],
+    ['history',         'command history']
+  ];
+  rows.forEach(([c, d]) => {
+    printRaw('<span class="k">' + esc(c.padEnd(18)) + '</span><span class="d">' + esc(d) + '</span>');
+  });
+  print('');
+  printRaw('<span class="d">tip: use </span><span class="k">Tab</span><span class="d"> to autocomplete, </span><span class="k">↑</span><span class="d">/</span><span class="k">↓</span><span class="d"> for history.</span>');
+}
+
+/* ---------------- ls / cat ---------------- */
+const FILES = {
+  'about.txt':      () => cmdAbout(),
+  'experience.txt': () => cmdExperience([]),
+  'skills.txt':     () => cmdSkills(),
+  'education.txt':  () => cmdEducation(),
+  'research.txt':   () => cmdResearch(),
+  'contact.txt':    () => cmdContact(),
+  'neofetch.exe':   () => cmdNeofetch(),
+  'demo.sh':        () => cmdDemo()
+};
+
+function cmdLs(){
+  const names = Object.keys(FILES);
+  printRaw(names.map(n => {
+    const cls = (n.endsWith('.exe') || n.endsWith('.sh')) ? 'warn' : 'k';
+    return '<span class="' + cls + '">' + esc(n) + '</span>';
+  }).join('   '));
+}
+
+function cmdCat(args){
+  if (!args || !args.length){
+    printRaw('<span class="err">cat: missing operand</span>');
+    printRaw('<span class="d">try: ls</span>');
+    return;
+  }
+  let name = args[0];
+  if (!FILES[name] && FILES[name + '.txt']) name = name + '.txt';
+
+  if (!FILES[name]){
+    printRaw('<span class="err">cat: ' + esc(args[0]) + ': No such file or directory</span>');
+    return;
+  }
+  FILES[name]();
+}
+
+/* ---------------- misc ---------------- */
+function cmdOpen(args){
+  if (!args || !args.length){
+    printRaw('<span class="err">open: missing target</span>');
+    printRaw('<span class="d">usage: open github | linkedin | email</span>');
+    return;
+  }
+  const t = args[0].toLowerCase();
+  const map = {
+    github:   CONTACT.github,
+    linkedin: CONTACT.linkedin,
+    email:    'mailto:' + CONTACT.email,
+    mail:     'mailto:' + CONTACT.email
+  };
+  if (!map[t]){
+    printRaw('<span class="err">open: unknown target "' + esc(t) + '"</span>');
+    return;
+  }
+  printRaw('<span class="d">opening </span>' + link(map[t], map[t]) + '<span class="d"> ...</span>');
+  window.open(map[t], '_blank', 'noopener');
+}
+
+function cmdHistory(){
+  if (!history.length){
+    printRaw('<span class="d">(no commands yet)</span>');
+    return;
+  }
+  history.forEach((h, i) => {
+    printRaw('<span class="d">' + String(i + 1).padStart(4, ' ') + '  </span>' + esc(h));
+  });
+}
+
+function cmdSudo(args){
+  const sub = (args[0] || '').toLowerCase();
+  if (sub === 'hire' || sub === 'hire-me' || sub === 'recruit'){
+    printRaw('<span class="ok">[sudo] password for recruiter: ********</span>');
+    print('');
+    printRaw('<span class="h1">Access granted.</span>');
+    print('Nima is open to senior embedded / automotive software roles.');
+    printRaw('<span class="d">→ </span>' + link('mailto:' + CONTACT.email, 'send email'));
+    return;
+  }
+  printRaw('<span class="err">nima is not in the sudoers file. This incident will be reported.</span>');
+}
+
+function cmdExit(){
+  printRaw('<span class="d">There is no exit from a good résumé. Try </span><span class="k">contact</span><span class="d"> instead.</span>');
+}
+
+/* =========================================================
+   COMMAND TABLE
+   ========================================================= */
+const ALIASES = {
+  whoami: 'about', summary: 'about', me: 'about',
+  exp: 'experience', work: 'experience',
+  edu: 'education', degree: 'education',
+  tech: 'skills', stack: 'skills',
+  papers: 'research', publications: 'research', pub: 'research',
+  reach: 'contact', mail: 'contact',
+  fetch: 'neofetch', sysinfo: 'neofetch',
+  cls: 'clear', '?': 'help', man: 'help',
+  tour: 'demo', walkthrough: 'demo', full: 'demo', play: 'demo'
+};
+
+const commands = {
+  demo:       { run: () => cmdDemo() },
+  help:       { run: () => cmdHelp() },
+  about:      { run: () => cmdAbout() },
+  experience: { run: a  => cmdExperience(a) },
+  skills:     { run: () => cmdSkills() },
+  education:  { run: () => cmdEducation() },
+  research:   { run: () => cmdResearch() },
+  contact:    { run: () => cmdContact() },
+  neofetch:   { run: () => cmdNeofetch() },
+  ls:         { run: () => cmdLs() },
+  cat:        { run: a  => cmdCat(a) },
+  open:       { run: a  => cmdOpen(a) },
+  history:    { run: () => cmdHistory() },
+  clear:      { run: () => { outputEl.innerHTML = ''; } },
+  sudo:       { run: a  => cmdSudo(a) },
+  exit:       { run: () => cmdExit() },
+  date:       { run: () => print(new Date().toString()) },
+  echo:       { run: a  => print(a.join(' ')) }
+};
+
+/* =========================================================
+   INPUT HANDLING
+   ========================================================= */
+const history = [];
+let histIdx = 0;
+let draft = '';
+
+function updateMirror(){
+  mirrorEl.innerHTML = esc(inputEl.value) + '<span class="cursor"></span>';
+}
+
+function runCommand(raw){
+  const trimmed = raw.trim();
+
+  printRaw(PROMPT_HTML + '<span class="cmd">' + esc(trimmed) + '</span>');
+
+  if (!trimmed) return;
+
+  history.push(trimmed);
+  histIdx = history.length;
+  draft = '';
+
+  const parts = trimmed.split(/\s+/);
+  let name = parts[0].toLowerCase();
+  const args = parts.slice(1);
+
+  if (ALIASES[name]) name = ALIASES[name];
+
+  const cmd = commands[name];
+  if (!cmd){
+    printRaw('<span class="err">command not found: ' + esc(parts[0]) + '</span>');
+    printRaw('<span class="d">type </span><span class="k">help</span><span class="d"> to see available commands</span>');
+    return;
+  }
+  cmd.run(args);
+}
+
+function submit(){
+  const val = inputEl.value;
+  inputEl.value = '';
+  updateMirror();
+  runCommand(val);
+  scrollDown();
+}
+
+function complete(){
+  const val = inputEl.value;
+  const parts = val.split(/\s+/);
+
+  if (parts.length <= 1){
+    const stub = parts[0].toLowerCase();
+    const matches = Object.keys(commands).filter(c => c.startsWith(stub));
+    if (matches.length === 1){
+      inputEl.value = matches[0] + ' ';
+    } else if (matches.length > 1){
+      printRaw(PROMPT_HTML + esc(val));
+      printRaw(matches.map(m => '<span class="k">' + m + '</span>').join('   '));
+    }
+  } else if (parts[0] === 'cat'){
+    const stub = (parts[1] || '').toLowerCase();
+    const matches = Object.keys(FILES).filter(f => f.startsWith(stub));
+    if (matches.length === 1){
+      inputEl.value = 'cat ' + matches[0];
+    } else if (matches.length > 1){
+      printRaw(PROMPT_HTML + esc(val));
+      printRaw(matches.map(m => '<span class="k">' + m + '</span>').join('   '));
+    }
+  } else if (parts[0] === 'experience'){
+    inputEl.value = 'experience ' + (parts[1] || '1');
+  } else if (parts[0] === 'open'){
+    inputEl.value = 'open ' + (parts[1] || 'email');
+  }
+  updateMirror();
+}
+
+inputEl.addEventListener('keydown', e => {
+
+  if (e.key === 'Enter'){
+    e.preventDefault();
+
+    if (continueResolver){
+      continueResolver();
+      inputEl.value = '';
+      updateMirror();
+      return;
+    }
+
+    if (demoRunning){
+      inputEl.value = '';
+      updateMirror();
+      return;
+    }
+
+    submit();
+    return;
+  }
+
+  if (e.key === 'ArrowUp'){
+    e.preventDefault();
+    if (!history.length) return;
+    if (histIdx === history.length) draft = inputEl.value;
+    if (histIdx > 0){
+      histIdx--;
+      inputEl.value = history[histIdx];
+      updateMirror();
+    }
+    return;
+  }
+
+  if (e.key === 'ArrowDown'){
+    e.preventDefault();
+    if (histIdx < history.length){
+      histIdx++;
+      inputEl.value = (histIdx === history.length) ? draft : history[histIdx];
+      updateMirror();
+    }
+    return;
+  }
+
+  if (e.key === 'Tab'){
+    e.preventDefault();
+    complete();
+    return;
+  }
+
+  if (e.key === 'l' && e.ctrlKey){
+    e.preventDefault();
+    outputEl.innerHTML = '';
+    return;
+  }
+
+  if (e.key === 'c' && e.ctrlKey){
+    e.preventDefault();
+
+    if (continueResolver){
+      continueResolver();
+      inputEl.value = '';
+      updateMirror();
+      return;
+    }
+
+    printRaw(PROMPT_HTML + '<span class="cmd">' + esc(inputEl.value) + '</span><span class="d">^C</span>');
+    inputEl.value = '';
+    updateMirror();
+    return;
+  }
+
+  if (e.key === 'u' && e.ctrlKey){
+    e.preventDefault();
+    inputEl.value = '';
+    updateMirror();
+  }
+});
+
+inputEl.addEventListener('input', updateMirror);
+
+/* Click-to-focus the prompt — but DO NOT steal focus from links.
+   If the user clicked a link, let the browser handle it. */
+document.addEventListener('mousedown', e => {
+  if (e.target.closest('a')) return;
+  setTimeout(() => {
+    if (!window.getSelection().toString()) inputEl.focus();
+  }, 0);
+});
+
+/* Links should open normally — don't let the terminal intercept them. */
+document.addEventListener('click', e => {
+  const a = e.target.closest('a');
+  if (!a) return;
+  /* Let the default navigation happen; stop the terminal input focus shift. */
+  e.stopPropagation();
+});
+
+/* =========================================================
+   BOOT SEQUENCE
+   ========================================================= */
+async function boot(){
+  inputLine.style.visibility = 'hidden';
+
+  printRaw('<span class="d">Starting </span><span class="h1">embedded-resume</span><span class="d"> v5.0 ...</span>');
+  await sleep(240);
+
+  const seq = [
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ] Mounted /dev/nima</span>', 120],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ] Loaded modules: can spi i2c usb gnss</span>', 120],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ] Started telematics.service</span>', 120],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ] Started graphics.service (60 FPS @ 1024×768)</span>', 120],
+
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ] Loading education ...</span>', 120],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   M.Sc. Electrical & Electronic Engineering — Automotive Engineering</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]     Iran University of Science and Technology · valedictorian</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   B.Sc. Avionics Engineering</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]     Civil Aviation Technology College · PLC-based control system</span>', 85],
+
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ] Loading work history ...</span>', 120],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   CROUSE PJS Co. — Senior Embedded Software Engineer</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]     Sep 2021 – Present · Tehran, Iran</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]     Telematics Control Unit · Cluster / Graphics · Radio / Infotainment</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Rahbaran Internet of Things — Electronics Engineer</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]     Sep 2020 – Sep 2021 · Tehran, Iran</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Kooreh Shahab — Electrical Design Engineer</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]     Apr 2019 – Sep 2020 · Tehran, Iran</span>', 85],
+
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ] Loading skills ...</span>', 120],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Programming: C · Embedded C · Python</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Embedded Systems: ARM Cortex-M · STM32F1/F4/F7/H7 · GD32 · RTOS · uC/OS</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Embedded Linux: Yocto · BitBake · Cross Compilation · GDB · ADB · Linux services</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Automotive: CAN · UDS/ISO 14229 · TCU · Telematics · eCall · bCall · OTA/FOTA</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Modem / Telematics: Meig MA800 · Quectel MC60</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Peripherals: SPI/QSPI · I2C · UART · USB · I2S · SDIO · DMA · GPIO</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Graphics: LVGL · TouchGFX · TFT-LCD · DMA2D · SDRAM</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   AI / CV: YOLOv5 · Object Detection · OpenCV · GAN · Image Processing</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Testing: Unity · HIL/SIL · Test Automation · Regression · VectorCAST</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Tools: makefile · Git · SVN · CANoe · IAR · Keil · STM32CubeIDE · Ozone · JTAG</span>', 85],
+
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ] Loading standards & methodologies ...</span>', 120],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   MISRA-C · ISTQB · V-Model · Agile</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Requirements Engineering · Verification & Validation · ASPICE concepts</span>', 85],
+
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ] Loading certificates ...</span>', 120],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Advanced Hardware Design — Fedevel Academy</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Advanced PCB Layout Course — Fedevel Academy</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   Altium Designer — Technical & Vocational Training Organization</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   AutoCAD Electrical — Technical & Vocational Training Organization</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   ARM Fundamentals with STM32 Microcontrollers — TeachTechs</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   C Programming in NASA Style — TeachTechs</span>', 85],
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ]   English Language Diploma — Puyesh Institute</span>', 85],
+
+    ['<span class="d">[ </span><span class="ok">OK</span><span class="d"> ] Reached target Résumé</span>', 120]
+  ];
+
+  for (const [html, delay] of seq){
+    printRaw(html);
+    await sleep(delay);
+  }
+
+  print('');
+  await sleep(250);
+  printRaw('<span class="d">Initialization complete. Loading system summary...</span>');
+  print('');
+  await sleep(300);
+
+  inputLine.style.visibility = 'visible';
+  inputEl.focus();
+
+  await sleep(400);
+  runCommand('neofetch');
+
+  print('');
+  await sleep(600);
+  runCommand('help');
+}
+
+window.addEventListener('load', boot);
+window.addEventListener('resize', scrollDown);
+</script>
+</body>
+</html>
